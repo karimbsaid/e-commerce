@@ -13,6 +13,11 @@ RUN mkdir -p public/build
 # Installer les dépendances et builder les assets frontend
 RUN npm install && npm run build
 
+# Installer Composer
+FROM composer:2.6 AS composer_builder
+WORKDIR /app
+COPY . .
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloade
 
 # Étape finale (production)
 FROM php:8.3-fpm-alpine
