@@ -1,0 +1,7 @@
+node_modules
+.env
+.env.local
+.env.production
+vendor
+storage/logs
+storage/framework
