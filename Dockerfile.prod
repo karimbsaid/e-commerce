@@ -3,20 +3,16 @@ FROM node:18 AS builder
 
 WORKDIR /app
 
-# Copier les fichiers nécessaires
+# Copier les fichiers nécessaires pour le frontend
 COPY package.json package-lock.json vite.config.js ./
 COPY resources/ resources/
-COPY database/ database/
-COPY composer.json composer.lock ./
 
-# Installer les dépendances Node.js
+# Créer le dossier public (Évite l'erreur "no such file or directory")
+RUN mkdir -p public/build
+
+# Installer les dépendances et builder les assets frontend
 RUN npm install && npm run build
 
-# Installer Composer
-FROM composer:2.6 AS composer_builder
-WORKDIR /app
-COPY . .
-RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
 # Étape finale (production)
 FROM php:8.3-fpm-alpine
