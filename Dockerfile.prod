@@ -3,21 +3,22 @@ FROM node:18 AS builder
 
 WORKDIR /app
 
-# Copier les fichiers nécessaires pour le frontend
+# Copier les fichiers nécessaires
 COPY package.json package-lock.json vite.config.js ./
 COPY resources/ resources/
-
-# Créer le dossier public (Évite l'erreur "no such file or directory")
+COPY database/ database/
+COPY composer.json composer.lock ./
 RUN mkdir -p public/build
 
-# Installer les dépendances et builder les assets frontend
+
+# Installer les dépendances Node.js
 RUN npm install && npm run build
 
 # Installer Composer
 FROM composer:2.6 AS composer_builder
 WORKDIR /app
 COPY . .
-RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloade
+RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
 # Étape finale (production)
 FROM php:8.3-fpm-alpine
@@ -40,6 +41,7 @@ COPY --from=composer_builder /app /var/www/html
 COPY --from=builder /app /var/www/html/public/build /var/www/html/public/build
 
 # Copier uniquement `.env.production` explicitement
+COPY .env.production /var/www/html/.env
 
 # Copier les fichiers de configuration
 COPY docker/prod/nginx.conf /etc/nginx/nginx.conf
